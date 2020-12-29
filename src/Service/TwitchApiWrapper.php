@@ -4,9 +4,7 @@ namespace App\Service;
 
 use Padhie\TwitchApiBundle\Exception\ApiErrorException;
 use Padhie\TwitchApiBundle\Exception\UserNotExistsException;
-use Padhie\TwitchApiBundle\Model\TwitchChannel;
 use Padhie\TwitchApiBundle\Model\TwitchChannelSubscriptions;
-use Padhie\TwitchApiBundle\Model\TwitchFollower;
 use Padhie\TwitchApiBundle\Model\TwitchStream;
 use Padhie\TwitchApiBundle\Model\TwitchUser;
 use Padhie\TwitchApiBundle\Model\TwitchValidate;
@@ -24,22 +22,25 @@ final class TwitchApiWrapper
     ];
     public const SESSION_OAUTH_KEY = 'twitchOAuth';
     public const SESSION_LOGIN = 'twitchLogin';
-    private const ACCESS_DENIED_EXCEPTION_MESSAGE = 'Unable to access channel subscribers of';
 
-    /** @var TwitchApiService */
-    private $twitchApiService;
+    private TwitchApiService $twitchApiService;
 
-    public function __construct(string $twitchClientId, string $twitchSecret, string $twitchRedirectUrl, string $twitchAccessToken)
+    public function __construct(EnvironmentContainer $environmentContainer)
     {
-        $this->twitchApiService = new TwitchApiService($twitchClientId, $twitchSecret, $twitchRedirectUrl);
-        $this->twitchApiService->setOAuth($twitchAccessToken);
+        $this->twitchApiService = new TwitchApiService(
+            $environmentContainer->getTwitchClientId(),
+            $environmentContainer->getTwitchClientSecret(),
+            $environmentContainer->getTwitchRedirectUrl());
+        $this->twitchApiService->setOAuth($environmentContainer->getTwitchAccessToken());
     }
 
     public function checkAndUseRequestOAuth(Request $request): void
     {
         $session = $request->getSession();
+        $oAuth = $session->get(self::SESSION_OAUTH_KEY);
+
         if ($session && $session->get(self::SESSION_OAUTH_KEY)) {
-            $this->twitchApiService->setOAuth($session->get(self::SESSION_OAUTH_KEY));
+            $this->twitchApiService->setOAuth($oAuth);
         }
     }
 
@@ -48,11 +49,6 @@ final class TwitchApiWrapper
         $this->twitchApiService->setOAuth($oAuth);
 
         return $this->twitchApiService->validate();
-    }
-
-    public function isAccessException(ApiErrorException $exception): bool
-    {
-        return strpos($exception->getMessage(), self::ACCESS_DENIED_EXCEPTION_MESSAGE) !== false;
     }
 
     /**
@@ -78,32 +74,6 @@ final class TwitchApiWrapper
     public function getStream(int $channelId = 0): ?TwitchStream
     {
         return $this->twitchApiService->getStream($channelId);
-    }
-
-    /**
-     * @throws ApiErrorException
-     */
-    public function getChannelById(int $channelId = 0): TwitchChannel
-    {
-        return $this->twitchApiService->getChannelById($channelId);
-    }
-
-    public function isUserFollowingChannel(int $userId = 0, int $channelId = 0): bool
-    {
-        return $this->twitchApiService->isUserFollowingChannel($userId, $channelId);
-    }
-
-    public function getUserFollowingChannel(): TwitchFollower
-    {
-        return $this->twitchApiService->getUserFollowingChannel();
-    }
-
-    /**
-     * @throws ApiErrorException
-     */
-    public function getEmoticonImageListByEmoteiconSets(string $emoticonsets): array
-    {
-        return $this->twitchApiService->getEmoticonImageListByEmoteiconSets($emoticonsets);
     }
 
     /**

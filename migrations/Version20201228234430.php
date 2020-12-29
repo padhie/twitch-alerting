@@ -25,7 +25,7 @@ final class Version20201228234430 extends AbstractMigration
                 file VARCHAR(255) NOT NULL,
                 active TINYINT(1) DEFAULT \'0\' NOT NULL,
                 INDEX IDX_F77AC06BA76ED395 (user_id),
-                UNIQUE INDEX name (name),
+                UNIQUE INDEX user_name (user_id, name),
                 PRIMARY KEY(id)
             ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB
         ');

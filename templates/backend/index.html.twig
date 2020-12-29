@@ -42,7 +42,18 @@
             </div>
 
             <div class="container fixed-bottom mb-2">
-                {{ form_row(form.save) }}
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form_row(form.save) }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <a href="{{ path("view", {userId: user.getId()}) }}" target="_blank" class="btn btn-primary btn-block">
+                            Go to View
+                            <span class="fas fa-reply fa-rotate-180"></span>
+                        </a>
+                    </div>
+                </div>
             </div>
 
         {{ form_end(form) }}

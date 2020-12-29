@@ -18,16 +18,18 @@ final class AlertFormHandler
     private EntityManagerInterface $entityManager;
     private AlertRepository $alertRepository;
     private Filesystem $filesystem;
-
     private string $fileSaveDir;
 
-    public function __construct(EntityManagerInterface $entityManager, AlertRepository $alertRepository, Filesystem $filesystem)
-    {
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        AlertRepository $alertRepository,
+        Filesystem $filesystem,
+        EnvironmentContainer $environmentContainer
+    ) {
         $this->entityManager = $entityManager;
         $this->alertRepository = $alertRepository;
         $this->filesystem = $filesystem;
-
-        $this->fileSaveDir = '';
+        $this->fileSaveDir = $environmentContainer->getDataDirectory() . DIRECTORY_SEPARATOR . 'sound' . DIRECTORY_SEPARATOR;
     }
 
     public function save(User $user, FormInterface $form, SluggerInterface $slugger, AlertFormModel $alertFormModel): void
@@ -39,6 +41,10 @@ final class AlertFormHandler
             $activeField = 'active_' . $i;
             $soundField = 'sound_' . $i;
 
+            if ($alertFormModel->{$nameField} === null) {
+                continue;
+            }
+
             $entity = $this->alertRepository->findOneBy([
                 'user' => $user->getId(),
                 'name' => $alertFormModel->{$nameField}
@@ -47,6 +53,7 @@ final class AlertFormHandler
             if ($entity === null) {
                 $new = true;
                 $entity = new AlertEntity($user, $alertFormModel->{$nameField});
+                $this->entityManager->persist($entity);
             }
 
             $this->saveFile($user, $form, $slugger, $i, $alertFormModel);
@@ -60,9 +67,9 @@ final class AlertFormHandler
 
                 $entity->setFile($alertFormModel->{$soundField});
             }
-
-            $this->entityManager->persist($entity);
         }
+
+        dump($alertFormModel);
 
         $this->entityManager->flush();
 
@@ -101,7 +108,6 @@ final class AlertFormHandler
     private function saveFile(User $user, FormInterface $form, SluggerInterface $slugger, int $index, AlertFormModel $alertFormModel): void
     {
         $soundFile = $form->get('sound_' . $index)->getData();
-
         if (!$soundFile) {
             return;
         }
@@ -112,13 +118,20 @@ final class AlertFormHandler
         $newFilename = sprintf('%s-%s.%s', $safeFilename, uniqid('', true), $soundFile->guessExtension());
 
         try {
-            $soundFile->move(
+            $result = $soundFile->move(
                 $this->fileSaveDir . DIRECTORY_SEPARATOR . $user->getId(),
                 $newFilename
             );
-        } catch (FileException $e) {
+        } catch (FileException $exception) {
+            dump($exception);
             return;
         }
+        dump(
+            $result,
+            $this->fileSaveDir . DIRECTORY_SEPARATOR . $user->getId(),
+            $newFilename,
+            $soundFile
+        );
 
         $alertFormModel->{'sound_' . $index} = $newFilename;
     }

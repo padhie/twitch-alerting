@@ -2,12 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Form\AlertForm;
 use App\Form\Model\Alert as AlertFormModel;
 use App\Repository\AlertRepository;
 use App\Service\AlertFormHandler;
 use App\Service\LoginService;
 use App\Service\UserService;
+use Padhie\TwitchApiBundle\Model\TwitchUser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -41,20 +43,20 @@ final class BackendController extends AbstractController
      */
     public function index(Request $request, SluggerInterface $slugger): Response
     {
-        if (!$this->loginService->checkLogin($request)) {
+        if (!$this->checkAccess($request)) {
             return $this->redirectToRoute('frontend');
         }
 
         $login = $this->loginService->getTwitchLogin($request);
-        if ($login === null) {
-            return $this->redirectToRoute('frontend');
-        }
+        assert($login instanceof TwitchUser);
 
-        $user = $this->userService->getOrCreateUserByTwitchUser($login);
-        $alertEntities = $this->alertRepository->findBy([
-            'user' => $user->getId(),
-            'active' => true,
-        ]);
+        $user = $this->userService->getUserByTwitchUser($login);
+        assert($user instanceof User);
+
+        $alertEntities = $this->alertRepository->findBy(
+            ['user' => $user->getId()],
+            ['id' => 'ASC']
+        );
 
         $alertFormModel = AlertFormModel::createFromEntities($alertEntities);
         $form = $this->alertForm->generate($alertFormModel);
@@ -69,7 +71,25 @@ final class BackendController extends AbstractController
             [
                 'maxIndex' => AlertForm::MAX_ITEMS - 1,
                 'form' => $form->createView(),
+                'user' => $user,
             ]
         );
+    }
+
+    private function checkAccess(Request $request): bool
+    {
+        if (!$this->loginService->checkLogin($request)) {
+            return false;
+        }
+
+        $login = $this->loginService->getTwitchLogin($request);
+
+        if ($login === null) {
+            return false;
+        }
+
+        $user = $this->userService->getUserByTwitchUser($login);
+
+        return $user !== null;
     }
 }

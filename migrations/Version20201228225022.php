@@ -23,9 +23,10 @@ final class Version20201228225022 extends AbstractMigration
         $this->addSql('
             CREATE TABLE users (
                 id VARCHAR(255) NOT NULL,
-                twitch_uuid VARCHAR(255) NOT NULL,
+                twitch_id VARCHAR(255) NOT NULL,
                 twitch_login VARCHAR(255) NOT NULL,
-                UNIQUE INDEX twitchUuid (twitch_uuid),
+                twitch_oauth VARCHAR(255) NOT NULL,
+                UNIQUE INDEX twitchId (twitch_id),
                 UNIQUE INDEX twitchLogin (twitch_login),
                 PRIMARY KEY(id)
            ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB

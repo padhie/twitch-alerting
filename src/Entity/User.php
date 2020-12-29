@@ -8,13 +8,13 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Table(name="users",
  *    uniqueConstraints={
- *        @ORM\UniqueConstraint(name="twitchUuid", columns={"twitch_uuid"}),
+ *        @ORM\UniqueConstraint(name="twitchId", columns={"twitch_id"}),
  *        @ORM\UniqueConstraint(name="twitchLogin", columns={"twitch_login"})
  *    }
  * )
  * @ORM\Entity(repositoryClass=UserRepository::class)
  */
-final class User
+class User
 {
     /**
      * @ORM\Column(type="string")
@@ -24,19 +24,25 @@ final class User
     private string $id;
 
     /**
-     * @ORM\Column(name="twitch_uuid", type="string", length=255)
+     * @ORM\Column(name="twitch_id", type="string", length=255, nullable=false)
      */
-    private string $twitchUuid;
+    private string $twitchId;
 
     /**
-     * @ORM\Column(name="twitch_login", type="string", length=255)
+     * @ORM\Column(name="twitch_login", type="string", length=255, nullable=false)
      */
     private string $twitchLogin;
 
-    public function __construct(string $twitchUuid, string $twitchLogin)
+    /**
+     * @ORM\Column(name="twitch_oauth", type="string", length=255, nullable=false)
+     */
+    private string $twitchOAuth;
+
+    public function __construct(string $twitchId, string $twitchLogin, string $twitchOAuth)
     {
-        $this->twitchUuid = $twitchUuid;
+        $this->twitchId = $twitchId;
         $this->twitchLogin = $twitchLogin;
+        $this->twitchOAuth = $twitchOAuth;
     }
 
     public function getId(): ?string
@@ -44,13 +50,18 @@ final class User
         return $this->id;
     }
 
-    public function getTwitchUuid(): string
+    public function getTwitchId(): string
     {
-        return $this->twitchUuid;
+        return $this->twitchId;
     }
 
     public function getTwitchLogin(): string
     {
         return $this->twitchLogin;
+    }
+
+    public function getTwitchOAuth(): string
+    {
+        return $this->twitchOAuth;
     }
 }

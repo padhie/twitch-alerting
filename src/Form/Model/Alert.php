@@ -61,6 +61,8 @@ final class Alert
 
             $self->{$nameField} = $alert->getName();
             $self->{$activeField} = $alert->isActive();
+
+            $count++;
         }
 
         return $self;

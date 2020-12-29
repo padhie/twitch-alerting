@@ -8,12 +8,12 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Table(name="alerts",
  *    uniqueConstraints={
- *        @ORM\UniqueConstraint(name="name", columns={"name"})
+ *        @ORM\UniqueConstraint(name="user_name", columns={"user_id", "name"})
  *    }
  * )
  * @ORM\Entity(repositoryClass=AlertRepository::class)
  */
-final class Alert
+class Alert
 {
     /**
      * @ORM\Id

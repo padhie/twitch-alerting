@@ -18,13 +18,13 @@ final class UserService
         $this->userRepository = $userRepository;
     }
 
-    public function getOrCreateUserByTwitchUser(TwitchUser $twitchUser): User
+    public function getUserByTwitchUser(TwitchUser $twitchUser): ?User
     {
-        $twitchUuid = $twitchUser->getId();
+        $twitchId = $twitchUser->getId();
         $twitchLogin = $twitchUser->getName();
 
         $user = $this->userRepository->findOneBy([
-            'twitchUuid' => $twitchUuid,
+            'twitchId' => $twitchId,
         ]);
 
         if ($user !== null) {
@@ -35,11 +35,21 @@ final class UserService
             'twitchLogin' => $twitchLogin,
         ]);
 
+        return $user ?? null;
+    }
+
+    public function getOrCreateUserByTwitchUser(TwitchUser $twitchUser, string $oAuth): User
+    {
+        $user = $this->getUserByTwitchUser($twitchUser);
         if ($user !== null) {
             return $user;
         }
 
-        $user = new User($twitchUuid, $twitchLogin);
+        $user = new User(
+            $twitchUser->getId(),
+            $twitchUser->getName(),
+            $oAuth
+        );
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();

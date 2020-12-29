@@ -54,6 +54,7 @@ final class AlertForm
                 CheckboxType::class,
                 [
                     'label' => 'Active',
+                    'required' => false,
                     'attr' => [
                         'class' => 'form-check-input',
                     ],
@@ -64,6 +65,7 @@ final class AlertForm
                 TextType::class,
                 [
                     'label' => 'Reward',
+                    'required' => false,
                     'help' => 'Name of the twitch reward',
                     'attr' => [
                         'class' => 'form-control',

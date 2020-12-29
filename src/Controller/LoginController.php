@@ -61,7 +61,7 @@ final class LoginController extends AbstractController
         $session->set(TwitchApiWrapper::SESSION_LOGIN, $validateModel->getLogin());
 
         $twitchUser = $this->twitchApiWrapper->getUserByName($validateModel->getLogin());
-        $this->userService->getOrCreateUserByTwitchUser($twitchUser);
+        $this->userService->getOrCreateUserByTwitchUser($twitchUser, $oAuth);
 
         return $this->redirectToRoute('backend');
     }
