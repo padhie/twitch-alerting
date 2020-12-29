@@ -1,0 +1,56 @@
+{% extends 'blank.html.twig' %}
+
+{% block title %}Sounds{% endblock %}
+
+{% block stylesheets %}
+    <style type="text/css">
+        {% include 'view/style.css' %}
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div id="debug" class="row"></div>
+
+        <div id="js-audio-wrapper" class="row"></div>
+
+        <div class="row">
+            <div id="auth" class="hidden text-center">
+                <p>First, connect with your Twitch Account:</p>
+                <a id="auth-link">Login</a>
+            </div>
+
+            <div id="socket" class="hidden">
+                <label class="ws-output-label">
+                    <textarea id="ws-output" rows="20"></textarea>
+                </label>
+
+                <form id="topic-form" class="text-right form-inline" >
+                    <label id="topic-label" for="topic-text"></label>
+                    <input type="text" id="topic-text" placeholder="Topic">
+                    <button type="submit" class="btn">Listen</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        {% include 'view/main.js' %}
+
+        {% for alert in alerts %}
+            sounds.push({
+                name: '{{ alert.getName() }}',
+                playerId: '{{ alert.getName()|lower|replace({' ': '_'}) }}',
+                src: '{{ baseFileUrl }}/{{ alert.getFile() }}'
+            });
+        {% endfor %}
+
+        init();
+
+        {% if debug %}
+            showHtmlOutput();
+        {% endif %}
+    </script>
+{% endblock %}

@@ -1,0 +1,12 @@
+.hidden {
+    display: none;
+}
+
+.ws-output-label {
+    width: 100%;
+}
+
+#ws-output {
+    font-family: Courier,serif;
+    width: 100%;
+}
