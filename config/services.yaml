@@ -29,3 +29,15 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\Service\TwitchApiWrapper:
+        public: true
+        autowire: false
+        arguments:
+            - "%env(twitch_client_id)%"
+            - "%env(twitch_secret)%"
+            - "%env(twitch_redirect_url)%"
+            - "%env(twitch_access_token)%"
+
+    Symfony\Component\Form\FormFactory:
+        alias: form.factory

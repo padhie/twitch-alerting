@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% form_theme form 'layout/form/card.html.twig' %}
+
+{% block title %}{% endblock %}
+
+{% block body %}
+
+    <div class="container">
+
+        {{ form_start(form) }}
+            {{ form_errors(form) }}
+
+            <div class="row mb-5">
+
+                {% for i in 0..maxIndex %}
+                    {% set activeField=['active_', i]|join %}
+                    {% set nameField=['name_', i]|join %}
+                    {% set soundField=['sound_', i]|join %}
+
+                    <div class="col-sm-4 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="form-group form-check">
+                                    {{ form_errors(attribute(form, activeField)) }}
+                                    {{ form_widget(attribute(form, activeField)) }}
+                                    {{ form_label(attribute(form, activeField)) }}
+                                </div>
+
+                                <div class="form-group">
+                                    {{ form_row(attribute(form, nameField)) }}
+                                </div>
+
+                                <div class="form-group">
+                                    {{ form_row(attribute(form, soundField)) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                {% endfor %}
+            </div>
+
+            <div class="container fixed-bottom mb-2">
+                {{ form_row(form.save) }}
+            </div>
+
+        {{ form_end(form) }}
+    </div>
+
+{% endblock %}

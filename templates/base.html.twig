@@ -1,12 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
     <head>
         <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
+        <title>{% block title %}{% endblock %}</title>
+
+        <link rel="stylesheet" href="{{ asset('asset/css/bootstrap.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('asset/css/fortawesome.all.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('asset/css/custom.css') }}">
         {% block stylesheets %}{% endblock %}
     </head>
     <body>
+        {% include 'layout/navigation.html.twig' %}
+
         {% block body %}{% endblock %}
+
+        <script src="{{ asset('asset/js/bootstrap.min.js') }}"></script>
+        <script src="{{ asset('asset/js/fortawesome.all.min.js') }}"></script>
         {% block javascripts %}{% endblock %}
     </body>
 </html>

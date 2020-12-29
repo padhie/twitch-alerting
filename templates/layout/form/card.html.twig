@@ -1,0 +1,39 @@
+{# ##### BASE ##### #}
+{% block form_row %}
+    {{- form_label(form) -}}
+    {{- form_errors(form) -}}
+    {{- form_widget(form) -}}
+    {% if form.vars.help ?? false %}
+        <small class="form-text text-muted">{{ form.vars.help|trans }}</small>
+    {% endif %}
+{% endblock form_row %}
+
+{# ##### INPUTS ##### #}
+{% block form_widget_simple %}
+    <input type="{{ type|default('text') }}" {{ block('widget_attributes') }} {% if value is not empty %}value="{{ value }}" {% endif %}/>
+{% endblock form_widget_simple %}
+
+{% block checkbox_widget %}
+    <input type="checkbox" {{ block('widget_attributes') }}{% if value is defined %} value="{{ value }}"{% endif %}{% if checked %} checked="checked"{% endif %} />
+{% endblock checkbox_widget %}
+
+{# ##### BUTTONS ##### #}
+{% block button_widget %}
+    {% if label is empty %}
+        {% if label_format is not empty %}
+            {% set label = label_format|replace({
+                '%name%': name,
+                '%id%': id,
+            }) %}
+        {% else %}
+            {% set label = name|humanize %}
+        {% endif %}
+    {% endif %}
+    <button type="{{ type|default('button') }}" class="btn {{ class|default('btn-default') }}" {{ block('button_attributes') }}>{{ translation_domain is same as(false) ? label : label|trans({}, translation_domain) }}</button>
+{% endblock button_widget %}
+
+{% block submit_widget %}
+    {% set type = type|default('submit') %}
+    {% set class = 'btn-primary btn-block' %}
+    {{ block('button_widget') }}
+{% endblock submit_widget %}

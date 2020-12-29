@@ -1,4 +1,4 @@
-FROM php:7.2-fpm
+FROM php:7.4-fpm
 WORKDIR "/application"
 
 RUN docker-php-ext-install -j$(nproc) mysqli
@@ -7,7 +7,8 @@ RUN docker-php-ext-install -j$(nproc) pdo_mysql
 
 RUN apt-get update \
     && apt-get upgrade \
-    && apt-get -y --no-install-recommends install nano git zip unzip wget curl iputils-ping \
+    && apt-get -y --no-install-recommends install nano git zip unzip iputils-ping \
+    && apt-get -y --no-install-recommends install wget curl \
     && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 # composer
