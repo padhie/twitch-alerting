@@ -24,9 +24,11 @@ final class AlertForm
         $this->formFactory = $formFactory;
     }
 
-    public function generate(AlertFormModel $alert): FormInterface
+    public function generate(AlertFormModel $alert, string $formAction): FormInterface
     {
-        $formBuilder = $this->formFactory->createBuilder(FormType::class, $alert);
+        $formBuilder = $this->formFactory->createBuilder(FormType::class, $alert)
+            ->setAction($formAction)
+            ->setMethod('POST');
 
         for($i=0; $i<self::MAX_ITEMS; $i++) {
             $formBuilder = $this->addFormItemPerIndex($formBuilder, $i);
@@ -36,7 +38,7 @@ final class AlertForm
             'save',
             SubmitType::class,
             [
-                'label' => 'Save',
+                'label' => 'save',
                 'attr' => [
                     'class' => 'btn-block'
                 ],
@@ -53,7 +55,7 @@ final class AlertForm
                 'active_' . $index,
                 CheckboxType::class,
                 [
-                    'label' => 'Active',
+                    'label' => 'active',
                     'required' => false,
                     'attr' => [
                         'class' => 'form-check-input',
@@ -64,9 +66,9 @@ final class AlertForm
                 'name_' . $index,
                 TextType::class,
                 [
-                    'label' => 'Reward',
+                    'label' => 'reward',
                     'required' => false,
-                    'help' => 'Name of the twitch reward',
+                    'help' => 'reward_hint',
                     'attr' => [
                         'class' => 'form-control',
                     ],
@@ -76,10 +78,10 @@ final class AlertForm
                 'sound_' . $index,
                 FileType::class,
                 [
-                    'label' => 'Soundfile',
+                    'label' => 'soundfile',
                     'mapped' => false,
                     'required' => false,
-                    'help' => 'Only mp3 files allowed.',
+                    'help' => 'soundfile_hint',
                     'attr' => [
                         'class' => 'form-control-file',
                     ],
@@ -89,7 +91,7 @@ final class AlertForm
                             'mimeTypes' => [
                                 'audio/mpeg',
                             ],
-                            'mimeTypesMessage' => 'Invalid file.',
+                            'mimeTypesMessage' => 'invalid_file',
                         ]),
                     ],
                 ]

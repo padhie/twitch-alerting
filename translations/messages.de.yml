@@ -1,0 +1,23 @@
+login_to_continue: "Einloggen zum fortsetzen"
+active: "Aktiv"
+reward: "Belohnung"
+reward_hint: "Name der Twitch Belohnung"
+soundfile: "Sound Datei"
+soundfile_hint: "nur MP3 Dateien erlaubt"
+save: "Speichern"
+go_to_view: "Zur View"
+invalid_file: "Ungültige Datei"
+you_will_be_redirect: "Sie werden in kürze weitergeleitet."
+
+navi:
+    home: "Startseite"
+    twitch: "Twitch"
+    imprint: "Impressum"
+
+error:
+    user_directory: "Userverzeichnis konnte nicht erstellt werden. Bitte kontaktiere den Administrator."
+    file_upload: "Datei '%filename%' konnte nicht hochgeladen werden."
+    error_creating: "Alertig '%name%' konnte nicht erstellt werden."
+
+success:
+    alert_saved: "Erfolgreich %success_count% Alerts gespeichert!"

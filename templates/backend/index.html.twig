@@ -2,8 +2,6 @@
 
 {% form_theme form 'layout/form/card.html.twig' %}
 
-{% block title %}{% endblock %}
-
 {% block body %}
 
     <div class="container">
@@ -41,7 +39,7 @@
                 {% endfor %}
             </div>
 
-            <div class="container fixed-bottom mb-2">
+            <div class="container fixed-bottom pb-2 pt-1 bg-white">
                 <div class="row">
                     <div class="col-md-6">
                         {{ form_row(form.save) }}
@@ -49,7 +47,7 @@
 
                     <div class="col-md-6">
                         <a href="{{ path("view", {userId: user.getId()}) }}" target="_blank" class="btn btn-primary btn-block">
-                            Go to View
+                            {% trans %}go_to_view{% endtrans %}
                             <span class="fas fa-reply fa-rotate-180"></span>
                         </a>
                     </div>

@@ -12,7 +12,12 @@
     <body>
         {% include 'layout/navigation.html.twig' %}
 
+        {% include 'layout/alert.html.twig' %}
+
         {% block body %}{% endblock %}
+
+        <script src="{{ asset('assert/js/jquery.min.js') }}"></script>
+        <script src="{{ asset('assert/js/jquery-ui.min.js') }}"></script>
 
         <script src="{{ asset('asset/js/bootstrap.min.js') }}"></script>
         <script src="{{ asset('asset/js/fortawesome.all.min.js') }}"></script>

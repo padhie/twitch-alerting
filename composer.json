@@ -90,7 +90,8 @@
             "cp vendor/twbs/bootstrap/dist/css/bootstrap.min.css public/asset/css/bootstrap.min.css",
             "cp vendor/twbs/bootstrap/dist/js/bootstrap.min.js public/asset/js/bootstrap.min.js",
             "cp vendor/fortawesome/font-awesome/css/all.min.css public/asset/css/fortawesome.all.min.css",
-            "cp vendor/fortawesome/font-awesome/js/all.min.js public/asset/js/fortawesome.all.min.js"
+            "cp vendor/fortawesome/font-awesome/js/all.min.js public/asset/js/fortawesome.all.min.js",
+            "cp -R vendor/fortawesome/font-awesome/webfonts public/asset/webfonts"
         ],
         "post-install-cmd": [
             "@auto-scripts",

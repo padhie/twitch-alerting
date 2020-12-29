@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\AlertForm;
 use App\Form\Model\Alert as AlertFormModel;
+use App\Model\NotificationCollection;
 use App\Repository\AlertRepository;
 use App\Service\AlertFormHandler;
 use App\Service\LoginService;
@@ -15,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class BackendController extends AbstractController
 {
@@ -23,19 +25,22 @@ final class BackendController extends AbstractController
     private AlertForm $alertForm;
     private AlertRepository $alertRepository;
     private AlertFormHandler $alertFormHandler;
+    private TranslatorInterface $translator;
 
     public function __construct(
         LoginService $loginService,
         UserService $userService,
         AlertRepository $alertRepository,
         AlertForm $alertForm,
-        AlertFormHandler $alertFormHandler
+        AlertFormHandler $alertFormHandler,
+        TranslatorInterface $translator
     ) {
         $this->loginService = $loginService;
         $this->userService = $userService;
         $this->alertForm = $alertForm;
         $this->alertRepository = $alertRepository;
         $this->alertFormHandler = $alertFormHandler;
+        $this->translator = $translator;
     }
 
     /**
@@ -59,11 +64,19 @@ final class BackendController extends AbstractController
         );
 
         $alertFormModel = AlertFormModel::createFromEntities($alertEntities);
-        $form = $this->alertForm->generate($alertFormModel);
+        $form = $this->alertForm->generate(
+            $alertFormModel,
+            $this->generateUrl('backend')
+        );
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->alertFormHandler->save($user, $form, $slugger, $alertFormModel);
+            $notificationCollection = new NotificationCollection();
+            $this->alertFormHandler->save($user, $form, $slugger, $alertFormModel, $notificationCollection);
+
+            $this->addFlashMassages($notificationCollection);
+
+            return $this->redirectToRoute('backend');
         }
 
         return $this->render(
@@ -91,5 +104,20 @@ final class BackendController extends AbstractController
         $user = $this->userService->getUserByTwitchUser($login);
 
         return $user !== null;
+    }
+
+    private function addFlashMassages(NotificationCollection $notificationCollection): void
+    {
+        foreach ($notificationCollection->getAllNotifications() as $notification) {
+            $variables = [];
+            foreach ($notification->getVariables() as $key => $value) {
+                $variables['%' . $key . '%'] = $value;
+            }
+
+            $this->addFlash(
+                $notification->getType(),
+                $this->translator->trans($notification->getMessage(), $variables)
+            );
+        }
     }
 }

@@ -1,0 +1,23 @@
+login_to_continue: "Login to continue"
+active: "Active"
+reward: "Reward"
+reward_hint: "Name of the twitch reward"
+soundfile: "Soundfile"
+soundfile_hint: "Only mp3 files allowed"
+save: "Save"
+go_to_view: "Go to View"
+invalid_file: "Invalid file"
+you_will_be_redirect: "You will be redirected in a moment."
+
+navi:
+    home: "Home"
+    twitch: "Twitch"
+    imprint: "Imprint"
+
+error:
+    user_directory: "User directory cant be created. Please contact the administrator."
+    file_upload: "File '%filename%' can not be uploaded."
+    error_creating: "Alertig '%name%' can not created."
+
+success:
+    alert_saved: "Saved %success_count% successful"
