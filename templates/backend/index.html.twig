@@ -4,9 +4,10 @@
 
 {% block body %}
 
-    <div class="container">
+    {{ form_start(form) }}
 
-        {{ form_start(form) }}
+        <div class="container">
+
             {{ form_errors(form) }}
 
             <div class="row mb-5">
@@ -16,7 +17,7 @@
                     {% set nameField=['name_', i]|join %}
                     {% set soundField=['sound_', i]|join %}
 
-                    <div class="col-sm-4 mb-4">
+                    <div class="col-xl-4 col-lg-6 mb-4">
                         <div class="card">
                             <div class="card-body">
                                 <div class="form-group form-check">
@@ -38,23 +39,23 @@
 
                 {% endfor %}
             </div>
+        </div>
 
-            <div class="container fixed-bottom pb-2 pt-1 bg-white">
-                <div class="row">
-                    <div class="col-md-6">
-                        {{ form_row(form.save) }}
-                    </div>
+        <div class="container fixed-bottom pb-2 pt-1 bg-white">
+            <div class="row">
+                <div class="col-md-6 mb-2">
+                    {{ form_row(form.save) }}
+                </div>
 
-                    <div class="col-md-6">
-                        <a href="{{ path("view", {userId: user.getId()}) }}" target="_blank" class="btn btn-primary btn-block">
-                            {% trans %}go_to_view{% endtrans %}
-                            <span class="fas fa-reply fa-rotate-180"></span>
-                        </a>
-                    </div>
+                <div class="col-md-6 mb-2">
+                    <a href="{{ path("view", {userId: user.getId()}) }}" target="_blank" class="btn btn-primary btn-block">
+                        {% trans %}go_to_view{% endtrans %}
+                        <span class="fas fa-reply fa-rotate-180"></span>
+                    </a>
                 </div>
             </div>
+        </div>
 
-        {{ form_end(form) }}
-    </div>
+    {{ form_end(form) }}
 
 {% endblock %}

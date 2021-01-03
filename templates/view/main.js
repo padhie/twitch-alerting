@@ -16,6 +16,26 @@ let sounds = [];
 let queue = [];
 
 function init() {
+    getUserMedia({audio: true})
+        .then(function (stream) {
+            if (stream === null) {
+                output('ERR', 'Audio permission required');
+                console.error(`${stream} is null`);
+
+                return;
+            }
+
+            if (stream.active === false) {
+                output('ERR', 'Audio permission required');
+                console.error(`${stream} is not active`);
+            }
+        })
+        .catch(function (err) {
+            output('ERR', err);
+
+            console.error(err);
+        });
+
     connect();
 
     setTimeout(

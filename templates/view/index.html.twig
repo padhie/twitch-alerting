@@ -25,7 +25,7 @@
                     <textarea id="ws-output" rows="20"></textarea>
                 </label>
 
-                <form id="topic-form" class="text-right form-inline" >
+                <form id="topic-form" class="text-right form-inline hidden" >
                     <label id="topic-label" for="topic-text"></label>
                     <input type="text" id="topic-text" placeholder="Topic">
                     <button type="submit" class="btn">Listen</button>
@@ -37,6 +37,7 @@
 
 {% block javascripts %}
     <script>
+        {% include 'view/permission.js' %}
         {% include 'view/main.js' %}
 
         {% for alert in alerts %}
@@ -47,10 +48,7 @@
             });
         {% endfor %}
 
+        showHtmlOutput();
         init();
-
-        {% if debug %}
-            showHtmlOutput();
-        {% endif %}
     </script>
 {% endblock %}

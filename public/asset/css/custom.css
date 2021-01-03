@@ -1,3 +1,34 @@
 .text-twitch {
     color: #6441a5 !important;
 }
+
+.btn-twitch {
+    color: #fff;
+    background-color: #6441a5;
+    border-color: #6441a5;
+}
+
+.btn-twitch:hover {
+    color: #fff;
+    background-color: #533689;
+    border-color: #533689;
+    text-decoration: none;
+}
+
+.border-twitch {
+    border-color: #6441a5 !important;
+}
+
+.img-box {
+    height: 150px;
+}
+
+.img-box img {
+    max-height: 100%;
+    max-width: 100%;
+    width: auto;
+}
+
+.card-height {
+    height: 300px;
+}

@@ -5,7 +5,7 @@ services:
         image: nginx:1.13-alpine
         container_name: alerting_web
         ports:
-            - "80:80"
+            - "8081:80"
         volumes:
             - .:/application
             - ./tools/docker/logs/nginx:/var/log/nginx

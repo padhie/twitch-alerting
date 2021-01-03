@@ -1,8 +1,7 @@
-login_to_continue: "Login to continue"
 active: "Active"
 reward: "Reward"
 reward_hint: "Name of the twitch reward"
-soundfile: "Soundfile"
+soundfile: "Sound-File"
 soundfile_hint: "Only mp3 files allowed"
 save: "Save"
 go_to_view: "Go to View"
@@ -13,6 +12,7 @@ navi:
     home: "Home"
     twitch: "Twitch"
     imprint: "Imprint"
+    tutorial: "Tutorial"
 
 error:
     user_directory: "User directory cant be created. Please contact the administrator."
@@ -20,4 +20,28 @@ error:
     error_creating: "Alertig '%name%' can not created."
 
 success:
-    alert_saved: "Saved %success_count% successful"
+    alert_saved: "Successful% success_count% alerts saved!"
+
+page:
+    home:
+        tutorial:
+            title: "Tutorial"
+            text: "Learn how everything works."
+            link: "Go to Tutorial"
+        login:
+            title: "Login"
+            text: "Sign up and get started."
+            link: "Login"
+    tutorial:
+        img:
+            1: "Twitch-Login"
+            2: "Administration"
+            3: "Save"
+            4: "Go To View"
+            5: "View"
+        text:
+            1: "1. Login with Twitch."
+            2: "2. Enter the name of the Twitch reward and upload a sound file."
+            3: "3. Save your settings."
+            4: "4. Open the 'View' page."
+            5: "5. Leave the page open in the background. The sounds will be played automatically."
