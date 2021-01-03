@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="container">
+
+        <div class="row mb-5 mt-5">
+
+            {% for tutorial in tutorialList %}
+
+                <div class="col-xl-4 col-lg-6">
+                    <div class="card card-height mb-4 pl-3 pt-3 pr-3">
+                        <div class="img-box">
+                            <a target="_blank" href="{{ asset(tutorial.getImg()) }}">
+                                <img src="{{ asset(tutorial.getImg()) }}" class="card-img-top border" alt="{{ tutorial.getImgAltKey()|trans }}">
+                            </a>
+                        </div>
+
+                        <div class="card-body">
+                            <p class="card-text">{{ tutorial.getTextKey()|trans }}</p>
+                        </div>
+                    </div>
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+{% endblock %}

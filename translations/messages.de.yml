@@ -1,4 +1,3 @@
-login_to_continue: "Einloggen zum fortsetzen"
 active: "Aktiv"
 reward: "Belohnung"
 reward_hint: "Name der Twitch Belohnung"
@@ -13,6 +12,7 @@ navi:
     home: "Startseite"
     twitch: "Twitch"
     imprint: "Impressum"
+    tutorial: "Anleitung"
 
 error:
     user_directory: "Userverzeichnis konnte nicht erstellt werden. Bitte kontaktiere den Administrator."
@@ -21,3 +21,28 @@ error:
 
 success:
     alert_saved: "Erfolgreich %success_count% Alerts gespeichert!"
+
+page:
+    home:
+        tutorial:
+            title: "Anleitung"
+            text: "Lerne wie alles funktioniert."
+            link: "Zur Anleitung"
+        login:
+            title: "Anmelden"
+            text: "Melde dich an und leg los."
+            link: "Einloggen"
+
+    tutorial:
+        img:
+            1: "Twitch-Login"
+            2: "Administration"
+            3: "Speichern"
+            4: "Zur Anzeigen"
+            5: "Anzeige"
+        text:
+            1: "1. Melde dich mit Twitch an."
+            2: "2. Gebe den Namen der Twitch Belohnung ein und lade eine Sound-Datei hoch."
+            3: "3. Speicher deine Einstellungen."
+            4: "4. Öffne die Anzeigeseite 'View'."
+            5: "5. Las die Seite im Hintergrun offen. Die Sounds werden automatisch abgespielt."

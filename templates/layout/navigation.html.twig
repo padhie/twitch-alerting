@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-md navbar-dark bg-dark mb-2">
+<nav class="navbar fixed-top navbar-expand-md navbar-dark bg-dark mb-2">
     <div class="container">
         <a class="navbar-brand" href="#">Alerting</a>
 
@@ -13,6 +13,12 @@
                 <li class="nav-item">
                     <a class="nav-link text-twitch" title="{% trans %}navi.twitch{% endtrans %}" href="{{ path('login') }}">
                         <span class="fab fa-twitch"></span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" title="{% trans %}navi.tutorial{% endtrans %}" href="{{ path('tutorial') }}">
+                        {% trans %}navi.tutorial{% endtrans %}
                     </a>
                 </li>
 
