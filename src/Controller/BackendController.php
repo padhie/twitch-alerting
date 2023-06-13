@@ -10,7 +10,6 @@ use App\Repository\AlertRepository;
 use App\Service\AlertFormHandler;
 use App\Service\LoginService;
 use App\Service\UserService;
-use Padhie\TwitchApiBundle\Model\TwitchUser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -48,15 +47,12 @@ final class BackendController extends AbstractController
      */
     public function index(Request $request, SluggerInterface $slugger): Response
     {
-        if (!$this->checkAccess($request)) {
+        $user = $this->loadUser($request);
+        if ($user === null) {
+            $this->addFlash('error', $this->translator->trans('error.no_login_found'));
+
             return $this->redirectToRoute('frontend');
         }
-
-        $login = $this->loginService->getTwitchLogin($request);
-        assert($login instanceof TwitchUser);
-
-        $user = $this->userService->getUserByTwitchUser($login);
-        assert($user instanceof User);
 
         $alertEntities = $this->alertRepository->findBy(
             ['user' => $user->getId()],
@@ -89,34 +85,31 @@ final class BackendController extends AbstractController
         );
     }
 
-    private function checkAccess(Request $request): bool
+    private function loadUser(Request $request): ?User
     {
         if (!$this->loginService->checkLogin($request)) {
-            return false;
+            return null;
         }
 
         $login = $this->loginService->getTwitchLogin($request);
-
         if ($login === null) {
-            return false;
+            return null;
         }
 
-        $user = $this->userService->getUserByTwitchUser($login);
-
-        return $user !== null;
+        return $this->userService->getUserByTwitchUser($login);
     }
 
     private function addFlashMassages(NotificationCollection $notificationCollection): void
     {
         foreach ($notificationCollection->getAllNotifications() as $notification) {
             $variables = [];
-            foreach ($notification->getVariables() as $key => $value) {
+            foreach ($notification->variables as $key => $value) {
                 $variables['%' . $key . '%'] = $value;
             }
 
             $this->addFlash(
-                $notification->getType(),
-                $this->translator->trans($notification->getMessage(), $variables)
+                $notification->type,
+                $this->translator->trans($notification->message, $variables)
             );
         }
     }

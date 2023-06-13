@@ -2,13 +2,16 @@
 
 namespace App\Service;
 
-use Padhie\TwitchApiBundle\Exception\ApiErrorException;
-use Padhie\TwitchApiBundle\Exception\UserNotExistsException;
-use Padhie\TwitchApiBundle\Model\TwitchChannelSubscriptions;
-use Padhie\TwitchApiBundle\Model\TwitchStream;
-use Padhie\TwitchApiBundle\Model\TwitchUser;
-use Padhie\TwitchApiBundle\Model\TwitchValidate;
-use Padhie\TwitchApiBundle\Service\TwitchApiService;
+use GuzzleHttp\Client;
+use Padhie\TwitchApiBundle\Request\Authenticator\ValidateRequest;
+use Padhie\TwitchApiBundle\Request\RequestGenerator;
+use Padhie\TwitchApiBundle\Request\Users\GetUsersRequest;
+use Padhie\TwitchApiBundle\Response\Authenticator\ValidateResponse;
+use Padhie\TwitchApiBundle\Response\ResponseGenerator;
+use Padhie\TwitchApiBundle\Response\Users\GetUsersResponse;
+use Padhie\TwitchApiBundle\Response\Users\User;
+use Padhie\TwitchApiBundle\TwitchAuthenticator;
+use Padhie\TwitchApiBundle\TwitchClient;
 use Symfony\Component\HttpFoundation\Request;
 
 final class TwitchApiWrapper
@@ -23,15 +26,17 @@ final class TwitchApiWrapper
     public const SESSION_OAUTH_KEY = 'twitchOAuth';
     public const SESSION_LOGIN = 'twitchLogin';
 
-    private TwitchApiService $twitchApiService;
+    private TwitchClient $client;
+    private TwitchAuthenticator $twitchAuthenticator;
 
-    public function __construct(EnvironmentContainer $environmentContainer)
-    {
-        $this->twitchApiService = new TwitchApiService(
-            $environmentContainer->getTwitchClientId(),
-            $environmentContainer->getTwitchClientSecret(),
-            $environmentContainer->getTwitchRedirectUrl());
-        $this->twitchApiService->setOAuth($environmentContainer->getTwitchAccessToken());
+    public function __construct(
+        private readonly EnvironmentContainer $environmentContainer
+    ) {
+        $this->twitchAuthenticator = new TwitchAuthenticator(
+            $this->environmentContainer->getTwitchClientId(),
+            $this->environmentContainer->getTwitchRedirectUrl(),
+        );
+        $this->recreateClient();
     }
 
     public function checkAndUseRequestOAuth(Request $request): void
@@ -40,15 +45,22 @@ final class TwitchApiWrapper
         $oAuth = $session->get(self::SESSION_OAUTH_KEY);
 
         if ($session && $session->get(self::SESSION_OAUTH_KEY)) {
-            $this->twitchApiService->setOAuth($oAuth);
+            $this->recreateClient($oAuth);
         }
     }
 
-    public function validateByOAuth(string $oAuth): TwitchValidate
+    public function validateByOAuth(string $oAuth): ValidateResponse
     {
-        $this->twitchApiService->setOAuth($oAuth);
+        $this->recreateClient($oAuth);
 
-        return $this->twitchApiService->validate();
+        $request = new ValidateRequest();
+        $response = $this->client->send($request);
+
+        if (!$response instanceof ValidateResponse) {
+            throw new \RuntimeException('invalid response', 1686681734274);
+        }
+
+        return $response;
     }
 
     /**
@@ -56,31 +68,37 @@ final class TwitchApiWrapper
      */
     public function getAccessTokenUrl(array $scopeList = []): string
     {
-        return $this->twitchApiService->getAccessTokenUrl($scopeList);
+        return $this->twitchAuthenticator->getAccessTokenUrl($scopeList);
     }
 
     /**
-     * @throws ApiErrorException
-     * @throws UserNotExistsException
+     * @throws \RuntimeException
      */
-    public function getUserByName(string $name): TwitchUser
+    public function getUserByName(string $name): User
     {
-        return $this->twitchApiService->getUserByName($name);
+        $request = new GetUsersRequest(null, $name);
+        $response = $this->client->send($request);
+
+        if (!$response instanceof GetUsersResponse) {
+            throw new \RuntimeException('invalid response', 1686681540728);
+        }
+
+        $users = $response->getUsers();
+        if (count($users) === 0) {
+            throw new \RuntimeException('no user returned', 1686681544514);
+        }
+
+        return $users[0];
     }
 
-    /**
-     * @throws ApiErrorException
-     */
-    public function getStream(int $channelId = 0): ?TwitchStream
+    private function recreateClient(?string $oAuth = null): void
     {
-        return $this->twitchApiService->getStream($channelId);
-    }
+        $oAuth = $oAuth ?? $this->environmentContainer->getTwitchAccessToken();
 
-    /**
-     * @throws ApiErrorException
-     */
-    public function getChannelSubscriber(int $channelId = 0): TwitchChannelSubscriptions
-    {
-        return $this->twitchApiService->getChannelSubscriber($channelId);
+        $this->client = new TwitchClient(
+            new Client(),
+            new RequestGenerator($this->environmentContainer->getTwitchClientId(), $oAuth),
+            new ResponseGenerator(),
+        );
     }
 }

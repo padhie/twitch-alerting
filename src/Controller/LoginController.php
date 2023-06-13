@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
+use App\Logger\LoggerKeywords;
 use App\Service\TwitchApiWrapper;
 use App\Service\UserService;
-use Padhie\TwitchApiBundle\Service\TwitchApiService;
+use GuzzleHttp\Exception\ClientException;
+use Padhie\TwitchApiBundle\TwitchAuthenticator;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,13 +15,11 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class LoginController extends AbstractController
 {
-    private TwitchApiWrapper $twitchApiWrapper;
-    private UserService $userService;
-
-    public function __construct(TwitchApiWrapper $twitchApiWrapper, UserService $userService)
-    {
-        $this->twitchApiWrapper = $twitchApiWrapper;
-        $this->userService = $userService;
+    public function __construct(
+        private readonly TwitchApiWrapper $twitchApiWrapper,
+        private readonly UserService $userService,
+        private readonly LoggerInterface $logger,
+    ) {
     }
 
     /**
@@ -29,7 +30,7 @@ final class LoginController extends AbstractController
         return $this->redirect(
             $this->twitchApiWrapper->getAccessTokenUrl(
                 array_merge(
-                    TwitchApiService::SCOPE_CHANNEL,
+                    TwitchAuthenticator::SCOPE_CHANNEL,
                     TwitchApiWrapper::SCOPE_PUBSUB
                 )
             )
@@ -60,7 +61,18 @@ final class LoginController extends AbstractController
         $validateModel = $this->twitchApiWrapper->validateByOAuth($oAuth);
         $session->set(TwitchApiWrapper::SESSION_LOGIN, $validateModel->getLogin());
 
-        $twitchUser = $this->twitchApiWrapper->getUserByName($validateModel->getLogin());
+        try {
+            $twitchUser = $this->twitchApiWrapper->getUserByName($validateModel->getLogin());
+        } catch (ClientException | \RuntimeException $exception) {
+            $this->logger->error('error during login with twitch', [
+                LoggerKeywords::CODE => 1686688033891,
+                LoggerKeywords::EXCEPTION => $exception,
+            ]);
+            $this->addFlash('error', 'Unexpected error during login. Please contact the administrator.');
+
+            return $this->redirectToRoute('frontend');
+        }
+
         $this->userService->getOrCreateUserByTwitchUser($twitchUser, $oAuth);
 
         return $this->redirectToRoute('backend');

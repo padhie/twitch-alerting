@@ -2,17 +2,17 @@
 
 namespace App\Service;
 
-use Padhie\TwitchApiBundle\Model\TwitchUser;
+use App\Logger\LoggerKeywords;
+use Padhie\TwitchApiBundle\Response\Users\User;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 final class LoginService
 {
-    private TwitchApiWrapper $twitchApiWrapper;
-
-    public function __construct(TwitchApiWrapper $twitchApiWrapper)
-    {
-
-        $this->twitchApiWrapper = $twitchApiWrapper;
+    public function __construct(
+        private readonly TwitchApiWrapper $twitchApiWrapper,
+        private readonly LoggerInterface $logger
+    ) {
     }
 
     public function checkLogin(Request $request): bool
@@ -25,7 +25,7 @@ final class LoginService
             || $oAuth !== null;
     }
 
-    public function getTwitchLogin(Request $request): ?TwitchUser
+    public function getTwitchLogin(Request $request): ?User
     {
         $session = $request->getSession();
         $login = $session->get(TwitchApiWrapper::SESSION_LOGIN);
@@ -42,6 +42,19 @@ final class LoginService
             $session->set(TwitchApiWrapper::SESSION_LOGIN, $login);
         }
 
-        return $this->twitchApiWrapper->getUserByName($login);
+        try {
+            return $this->twitchApiWrapper->getUserByName($login);
+        } catch (\RuntimeException $exception) {
+            $this->logger->error(
+                'error during login with twitch',
+                [
+                    LoggerKeywords::CODE => 1686687072003,
+                    LoggerKeywords::EXCEPTION => $exception,
+                    'login' => $login,
+                ]
+            );
+
+            return null;
+        }
     }
 }

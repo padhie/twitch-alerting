@@ -11,8 +11,8 @@ final class NotificationCollection
     {
         foreach ($this->notifications as $innerNotification) {
             if (
-                $innerNotification->getType() === $notification->getType()
-                && $innerNotification->getMessage() === $notification->getMessage()
+                $innerNotification->type === $notification->type
+                && $innerNotification->message === $notification->message
             ) {
                 return;
             }
@@ -26,18 +26,11 @@ final class NotificationCollection
         $this->notifications[] = $notification;
     }
 
+    /**
+     * @return Notification[]
+     */
     public function getAllNotifications(): array
     {
         return $this->notifications;
-    }
-
-    public function getNotificationsByType(string $type): array
-    {
-        return array_filter(
-            $this->notifications,
-            static function (Notification $notification) use ($type): bool {
-                return $notification->getType() === $type;
-            }
-        );
     }
 }

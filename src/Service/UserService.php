@@ -5,7 +5,7 @@ namespace App\Service;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Padhie\TwitchApiBundle\Model\TwitchUser;
+use Padhie\TwitchApiBundle\Response\Users\User as TwitchUser;
 
 final class UserService
 {
@@ -21,7 +21,7 @@ final class UserService
     public function getUserByTwitchUser(TwitchUser $twitchUser): ?User
     {
         $twitchId = $twitchUser->getId();
-        $twitchLogin = $twitchUser->getName();
+        $twitchLogin = $twitchUser->getLogin();
 
         $user = $this->userRepository->findOneBy([
             'twitchId' => $twitchId,
@@ -47,7 +47,7 @@ final class UserService
 
         $user = new User(
             $twitchUser->getId(),
-            $twitchUser->getName(),
+            $twitchUser->getLogin(),
             $oAuth
         );
 

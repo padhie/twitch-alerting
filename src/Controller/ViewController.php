@@ -40,7 +40,7 @@ final class ViewController extends AbstractController
         return $this->render('view/index.html.twig', [
             'alerts' => $alerts,
             'user' => $user,
-            'baseFileUrl' => '/sound/' . $user->getId(),
+            'baseFileUrl' => '/sound/' . $user->getId() ?? 0,
             'debug' => (bool) $request->get('debug', false),
         ]);
     }

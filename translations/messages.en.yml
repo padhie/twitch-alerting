@@ -18,6 +18,7 @@ error:
     user_directory: "User directory cant be created. Please contact the administrator."
     file_upload: "File '%filename%' can not be uploaded."
     error_creating: "Alertig '%name%' can not created."
+    no_login_found: "No valid login found"
 
 success:
     alert_saved: "Successful% success_count% alerts saved!"
