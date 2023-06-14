@@ -3,12 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Form\AlertForm;
-use App\Form\Model\Alert as AlertFormModel;
+use App\Form\AlertListForm;
+use App\Form\Model\AlertList as AlertFormModel;
 use App\Model\NotificationCollection;
 use App\Repository\AlertRepository;
-use App\Service\AlertFormHandler;
-use App\Service\LoginService;
+use App\Service\AlertListFormHandler;
+use App\Service\TwitchApiWrapper;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,27 +19,13 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class BackendController extends AbstractController
 {
-    private LoginService $loginService;
-    private UserService $userService;
-    private AlertForm $alertForm;
-    private AlertRepository $alertRepository;
-    private AlertFormHandler $alertFormHandler;
-    private TranslatorInterface $translator;
-
     public function __construct(
-        LoginService $loginService,
-        UserService $userService,
-        AlertRepository $alertRepository,
-        AlertForm $alertForm,
-        AlertFormHandler $alertFormHandler,
-        TranslatorInterface $translator
+        private readonly UserService $userService,
+        private readonly AlertRepository $alertRepository,
+        private readonly AlertListForm $alertForm,
+        private readonly AlertListFormHandler $alertListFormHandler,
+        private readonly TranslatorInterface $translator
     ) {
-        $this->loginService = $loginService;
-        $this->userService = $userService;
-        $this->alertForm = $alertForm;
-        $this->alertRepository = $alertRepository;
-        $this->alertFormHandler = $alertFormHandler;
-        $this->translator = $translator;
     }
 
     /**
@@ -68,7 +54,7 @@ final class BackendController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $notificationCollection = new NotificationCollection();
-            $this->alertFormHandler->save($user, $form, $slugger, $alertFormModel, $notificationCollection);
+            $this->alertListFormHandler->save($user, $form, $slugger, $alertFormModel, $notificationCollection);
 
             $this->addFlashMassages($notificationCollection);
 
@@ -78,7 +64,7 @@ final class BackendController extends AbstractController
         return $this->render(
             'backend/index.html.twig',
             [
-                'maxIndex' => AlertForm::MAX_ITEMS - 1,
+                'maxIndex' => AlertListForm::MAX_ITEMS - 1,
                 'form' => $form->createView(),
                 'user' => $user,
             ]
@@ -87,16 +73,11 @@ final class BackendController extends AbstractController
 
     private function loadUser(Request $request): ?User
     {
-        if (!$this->loginService->checkLogin($request)) {
-            return null;
-        }
+        $session = $request->getSession();
+        $id = $session->get(TwitchApiWrapper::SESSION_ID);
+        $login = $session->get(TwitchApiWrapper::SESSION_LOGIN);
 
-        $login = $this->loginService->getTwitchLogin($request);
-        if ($login === null) {
-            return null;
-        }
-
-        return $this->userService->getUserByTwitchUser($login);
+        return $this->userService->getUserByTwitchUserData($id, $login);
     }
 
     private function addFlashMassages(NotificationCollection $notificationCollection): void

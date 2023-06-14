@@ -9,13 +9,10 @@ use Padhie\TwitchApiBundle\Response\Users\User as TwitchUser;
 
 final class UserService
 {
-    private EntityManagerInterface $entityManager;
-    private UserRepository $userRepository;
-
-    public function __construct(EntityManagerInterface $entityManager, UserRepository $userRepository)
-    {
-        $this->entityManager = $entityManager;
-        $this->userRepository = $userRepository;
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly UserRepository $userRepository
+    ) {
     }
 
     public function getUserByTwitchUser(TwitchUser $twitchUser): ?User
@@ -23,8 +20,13 @@ final class UserService
         $twitchId = $twitchUser->getId();
         $twitchLogin = $twitchUser->getLogin();
 
+        return $this->getUserByTwitchUserData($twitchId, $twitchLogin);
+    }
+
+    public function getUserByTwitchUserData(?int $twitchId, ?string $twitchLogin): ?User
+    {
         $user = $this->userRepository->findOneBy([
-            'twitchId' => $twitchId,
+            'twitchId' => $twitchId ?? '',
         ]);
 
         if ($user !== null) {
@@ -32,7 +34,7 @@ final class UserService
         }
 
         $user = $this->userRepository->findOneBy([
-            'twitchLogin' => $twitchLogin,
+            'twitchLogin' => $twitchLogin ?? '',
         ]);
 
         return $user ?? null;

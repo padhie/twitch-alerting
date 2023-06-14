@@ -28,7 +28,7 @@ final class LoginController extends AbstractController
     public function indexAction(): Response
     {
         return $this->redirect(
-            $this->twitchApiWrapper->getAccessTokenUrl(
+            $this->twitchApiWrapper->getAccessCodeUrl(
                 array_merge(
                     TwitchAuthenticator::SCOPE_CHANNEL,
                     TwitchApiWrapper::SCOPE_PUBSUB
@@ -40,9 +40,12 @@ final class LoginController extends AbstractController
     /**
      * @Route("/twitch/get_access", name="twitch_access")
      */
-    public function getAccessAction(): Response
+    public function getAccessAction(Request $request): Response
     {
-        return $this->render('twitch/access.html.twig');
+        $code = $request->query->get('code') ?? '';
+        $response = $this->twitchApiWrapper->getToken($code);
+
+        return $this->handleAccessToken($request, $response->getAccessToken());
     }
 
     /**
@@ -50,7 +53,13 @@ final class LoginController extends AbstractController
      */
     public function redirectAction(Request $request): Response
     {
-        $oAuth = $request->get('access_token');
+        $oAuth = $request->get('access_token') ?? null;
+
+        return $this->handleAccessToken($request, $oAuth);
+    }
+
+    private function handleAccessToken(Request $request, ?string $oAuth): Response
+    {
         if ($oAuth === null) {
             return $this->redirectToRoute('frontend');
         }
@@ -59,6 +68,7 @@ final class LoginController extends AbstractController
 
         $session = $request->getSession();
         $validateModel = $this->twitchApiWrapper->validateByOAuth($oAuth);
+        $session->set(TwitchApiWrapper::SESSION_ID, $validateModel->getUserId());
         $session->set(TwitchApiWrapper::SESSION_LOGIN, $validateModel->getLogin());
 
         try {
@@ -66,7 +76,8 @@ final class LoginController extends AbstractController
         } catch (ClientException | \RuntimeException $exception) {
             $this->logger->error('error during login with twitch', [
                 LoggerKeywords::CODE => 1686688033891,
-                LoggerKeywords::EXCEPTION => $exception,
+                LoggerKeywords::EXCEPTION_MESSAGE => $exception->getMessage(),
+                LoggerKeywords::EXCEPTION_CODE => $exception->getCode(),
             ]);
             $this->addFlash('error', 'Unexpected error during login. Please contact the administrator.');
 
@@ -77,5 +88,4 @@ final class LoginController extends AbstractController
 
         return $this->redirectToRoute('backend');
     }
-
 }

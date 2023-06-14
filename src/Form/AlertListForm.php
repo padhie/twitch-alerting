@@ -2,7 +2,7 @@
 
 namespace App\Form;
 
-use App\Form\Model\Alert as AlertFormModel;
+use App\Form\Model\AlertList as AlertListFormModel;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
@@ -13,9 +13,9 @@ use Symfony\Component\Form\FormFactory;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Validator\Constraints\File;
 
-final class AlertForm
+final class AlertListForm
 {
-    public const MAX_ITEMS = 9;
+    public const MAX_ITEMS = 20;
 
     private FormFactory $formFactory;
 
@@ -24,7 +24,7 @@ final class AlertForm
         $this->formFactory = $formFactory;
     }
 
-    public function generate(AlertFormModel $alert, string $formAction): FormInterface
+    public function generate(AlertListFormModel $alert, string $formAction): FormInterface
     {
         $formBuilder = $this->formFactory->createBuilder(FormType::class, $alert)
             ->setAction($formAction)

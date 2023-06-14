@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use App\Twitch\TokenRequest;
+use App\Twitch\TokenResponse;
 use GuzzleHttp\Client;
 use Padhie\TwitchApiBundle\Request\Authenticator\ValidateRequest;
 use Padhie\TwitchApiBundle\Request\RequestGenerator;
@@ -25,9 +27,10 @@ final class TwitchApiWrapper
     ];
     public const SESSION_OAUTH_KEY = 'twitchOAuth';
     public const SESSION_LOGIN = 'twitchLogin';
+    public const SESSION_ID = 'twitchId';
 
     private TwitchClient $client;
-    private TwitchAuthenticator $twitchAuthenticator;
+    private readonly TwitchAuthenticator $twitchAuthenticator;
 
     public function __construct(
         private readonly EnvironmentContainer $environmentContainer
@@ -49,6 +52,23 @@ final class TwitchApiWrapper
         }
     }
 
+    public function getToken(string $code): TokenResponse
+    {
+        $request = new TokenRequest(
+            $this->environmentContainer->getTwitchClientId(),
+            $this->environmentContainer->getTwitchClientSecret(),
+            $code,
+            $this->environmentContainer->getTwitchRedirectUrl()
+        );
+        $response = $this->client->send($request);
+
+        if (!$response instanceof TokenResponse) {
+            throw new \RuntimeException('invalid response', 1686763684545);
+        }
+
+        return $response;
+    }
+
     public function validateByOAuth(string $oAuth): ValidateResponse
     {
         $this->recreateClient($oAuth);
@@ -66,9 +86,26 @@ final class TwitchApiWrapper
     /**
      * @param array<int, string> $scopeList
      */
-    public function getAccessTokenUrl(array $scopeList = []): string
+    public function getAccessCodeUrl(array $scopeList = []): string
     {
-        return $this->twitchAuthenticator->getAccessTokenUrl($scopeList);
+        return $this->twitchAuthenticator->getAccessCodeUrl($scopeList);
+    }
+
+    public function getLoggedInUser(): User
+    {
+        $request = new GetUsersRequest(null, null);
+        $response = $this->client->send($request);
+
+        if (!$response instanceof GetUsersResponse) {
+            throw new \RuntimeException('invalid response', 1686764217315);
+        }
+
+        $users = $response->getUsers();
+        if (count($users) === 0) {
+            throw new \RuntimeException('no user returned', 1686764219958);
+        }
+
+        return $users[0];
     }
 
     /**
