@@ -1,4 +1,6 @@
 {
+    "name": "padhie/twitch-alerting",
+    "description": "a project for stream alerting by channel points - http://tw-alerting.padhie.de/",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "dev",
@@ -7,7 +9,7 @@
         "php": "^8.1",
         "ext-ctype": "*",
         "ext-iconv": "*",
-        "composer/package-versions-deprecated": "1.11.99.1",
+        "composer/package-versions-deprecated": "^1.11",
         "doctrine/annotations": "^1.0",
         "doctrine/doctrine-bundle": "^2.2",
         "doctrine/doctrine-migrations-bundle": "^3.0",
@@ -43,7 +45,7 @@
         "symfony/validator": "5.4.*",
         "symfony/web-link": "5.4.*",
         "symfony/yaml": "5.4.*",
-        "twbs/bootstrap": "v4.5.3",
+        "twbs/bootstrap": "^4.5",
         "twig/extra-bundle": "^2.12|^3.0",
         "twig/twig": "^2.12|^3.0"
     },
@@ -100,6 +102,10 @@
             "@php-cs-fixer-dry",
             "@phpstan",
             "php bin/console doctrine:schema:validate"
+        ],
+        "ci": [
+            "@php-cs-fixer-dry",
+            "@phpstan"
         ],
         "fix": [
             "@php-cs-fixer-fix"
