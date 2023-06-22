@@ -3,14 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Form\AlertForm;
-use App\Form\Model\Alert as AlertFormModel;
+use App\Form\AlertListForm;
+use App\Form\Model\AlertList as AlertFormModel;
 use App\Model\NotificationCollection;
 use App\Repository\AlertRepository;
-use App\Service\AlertFormHandler;
-use App\Service\LoginService;
+use App\Service\AlertListFormHandler;
 use App\Service\UserService;
-use Padhie\TwitchApiBundle\Model\TwitchUser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,43 +18,24 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class BackendController extends AbstractController
 {
-    private LoginService $loginService;
-    private UserService $userService;
-    private AlertForm $alertForm;
-    private AlertRepository $alertRepository;
-    private AlertFormHandler $alertFormHandler;
-    private TranslatorInterface $translator;
-
     public function __construct(
-        LoginService $loginService,
-        UserService $userService,
-        AlertRepository $alertRepository,
-        AlertForm $alertForm,
-        AlertFormHandler $alertFormHandler,
-        TranslatorInterface $translator
+        private readonly UserService $userService,
+        private readonly AlertRepository $alertRepository,
+        private readonly AlertListForm $alertForm,
+        private readonly AlertListFormHandler $alertListFormHandler,
+        private readonly TranslatorInterface $translator
     ) {
-        $this->loginService = $loginService;
-        $this->userService = $userService;
-        $this->alertForm = $alertForm;
-        $this->alertRepository = $alertRepository;
-        $this->alertFormHandler = $alertFormHandler;
-        $this->translator = $translator;
     }
 
-    /**
-     * @Route("/admin", name="backend")
-     */
+    #[Route("/admin", name: "backend")]
     public function index(Request $request, SluggerInterface $slugger): Response
     {
-        if (!$this->checkAccess($request)) {
+        $user = $this->loadUser($request);
+        if ($user === null) {
+            $this->addFlash('error', $this->translator->trans('error.no_login_found'));
+
             return $this->redirectToRoute('frontend');
         }
-
-        $login = $this->loginService->getTwitchLogin($request);
-        assert($login instanceof TwitchUser);
-
-        $user = $this->userService->getUserByTwitchUser($login);
-        assert($user instanceof User);
 
         $alertEntities = $this->alertRepository->findBy(
             ['user' => $user->getId()],
@@ -72,7 +51,7 @@ final class BackendController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $notificationCollection = new NotificationCollection();
-            $this->alertFormHandler->save($user, $form, $slugger, $alertFormModel, $notificationCollection);
+            $this->alertListFormHandler->save($user, $form, $slugger, $alertFormModel, $notificationCollection);
 
             $this->addFlashMassages($notificationCollection);
 
@@ -82,41 +61,35 @@ final class BackendController extends AbstractController
         return $this->render(
             'backend/index.html.twig',
             [
-                'maxIndex' => AlertForm::MAX_ITEMS - 1,
+                'maxIndex' => AlertListForm::MAX_ITEMS - 1,
                 'form' => $form->createView(),
                 'user' => $user,
             ]
         );
     }
 
-    private function checkAccess(Request $request): bool
+    private function loadUser(Request $request): ?User
     {
-        if (!$this->loginService->checkLogin($request)) {
-            return false;
+        $session = $request->getSession();
+        $userUuid = $session->get(UserService::SESSION_KEY_USER_ID);
+        if ($userUuid === null) {
+            return null;
         }
 
-        $login = $this->loginService->getTwitchLogin($request);
-
-        if ($login === null) {
-            return false;
-        }
-
-        $user = $this->userService->getUserByTwitchUser($login);
-
-        return $user !== null;
+        return $this->userService->find($userUuid);
     }
 
     private function addFlashMassages(NotificationCollection $notificationCollection): void
     {
         foreach ($notificationCollection->getAllNotifications() as $notification) {
             $variables = [];
-            foreach ($notification->getVariables() as $key => $value) {
+            foreach ($notification->variables as $key => $value) {
                 $variables['%' . $key . '%'] = $value;
             }
 
             $this->addFlash(
-                $notification->getType(),
-                $this->translator->trans($notification->getMessage(), $variables)
+                $notification->type,
+                $this->translator->trans($notification->message, $variables)
             );
         }
     }

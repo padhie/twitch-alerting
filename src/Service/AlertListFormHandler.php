@@ -4,8 +4,9 @@ namespace App\Service;
 
 use App\Entity\Alert as AlertEntity;
 use App\Entity\User;
-use App\Form\AlertForm;
-use App\Form\Model\Alert as AlertFormModel;
+use App\Form\AlertListForm;
+use App\Form\Model\AlertList as AlertFormModel;
+use App\Form\Model\Alert;
 use App\Model\Notification;
 use App\Model\NotificationCollection;
 use App\Repository\AlertRepository;
@@ -16,78 +17,67 @@ use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
-final class AlertFormHandler
+final class AlertListFormHandler
 {
-    private EntityManagerInterface $entityManager;
-    private AlertRepository $alertRepository;
-    private Filesystem $filesystem;
     private string $fileSaveDir;
 
     public function __construct(
-        EntityManagerInterface $entityManager,
-        AlertRepository $alertRepository,
-        Filesystem $filesystem,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly AlertRepository $alertRepository,
+        private readonly Filesystem $filesystem,
         EnvironmentContainer $environmentContainer
     ) {
-        $this->entityManager = $entityManager;
-        $this->alertRepository = $alertRepository;
-        $this->filesystem = $filesystem;
         $this->fileSaveDir = $environmentContainer->getDataDirectory() . DIRECTORY_SEPARATOR . 'sound';
     }
 
-    public function save(User $user, FormInterface $form, SluggerInterface $slugger, AlertFormModel $alertFormModel, NotificationCollection $notificationCollection): void
-    {
+    public function save(
+        User $user,
+        FormInterface $form,
+        SluggerInterface $slugger,
+        AlertFormModel $alertFormModel,
+        NotificationCollection $notificationCollection
+    ): void {
         $savedCounter = 0;
-        for($i=0; $i<AlertForm::MAX_ITEMS; $i++) {
+        for($i=0; $i<AlertListForm::MAX_ITEMS; $i++) {
             $new = false;
 
-            $nameField = 'name_' . $i;
-            $activeField = 'active_' . $i;
-            $soundField = 'sound_' . $i;
-
-            if ($alertFormModel->{$nameField} === null) {
+            $item = $alertFormModel->getItem($i);
+            if ($item->name == null) {
                 continue;
             }
 
-            $this->saveFile($user, $form, $slugger, $i, $alertFormModel, $notificationCollection);
-
-            $nameValue = $alertFormModel->{$nameField};
-            $activeValue = $alertFormModel->{$activeField};
-            $soundValue = $alertFormModel->{$soundField};
-
+            $this->saveFile($user, $form, $slugger, $i, $item, $notificationCollection);
 
             $entity = $this->alertRepository->findOneBy([
                 'user' => $user->getId(),
-                'name' => $nameValue
+                'name' => $item->name
             ]);
 
             if ($entity === null) {
                 $new = true;
-                $entity = new AlertEntity($user, $nameValue);
+                $entity = new AlertEntity($user, $item->name);
                 $this->entityManager->persist($entity);
 
-                if ($soundValue) {
+                if (!$item->sound) {
                     $notificationCollection->addWithDuplicate(
-                        new Notification('error', 'error.error_creating', ['name' => $nameValue])
+                        new Notification('error', 'error.error_creating', ['name' => $item->name])
                     );
 
                     continue;
                 }
             }
-            $entity->setActive($activeValue);
+            $entity->setActive($item->active);
 
-            if ($soundValue !== null) {
+            if ($item->sound !== null) {
                 if ($new !== true) {
                     $this->deleteFile($user, $entity);
                 }
 
-                $entity->setFile($soundValue);
+                $entity->setFile($item->sound);
             }
 
             $savedCounter++;
         }
-
-        dump($alertFormModel);
 
         $this->entityManager->flush();
 
@@ -99,7 +89,7 @@ final class AlertFormHandler
     private function removeOldAlerts(User $user, AlertFormModel $alertFormModel): void
     {
         $currentAlertNames = [];
-        for($i=0; $i<AlertForm::MAX_ITEMS; $i++) {
+        for($i=0; $i<AlertListForm::MAX_ITEMS; $i++) {
             $nameField = 'name_' . $i;
 
             $currentAlertNames[] = $alertFormModel->{$nameField};
@@ -125,8 +115,14 @@ final class AlertFormHandler
         $this->entityManager->flush();
     }
 
-    private function saveFile(User $user, FormInterface $form, SluggerInterface $slugger, int $index, AlertFormModel $alertFormModel, NotificationCollection $notificationCollection): void
-    {
+    private function saveFile(
+        User $user,
+        FormInterface $form,
+        SluggerInterface $slugger,
+        int $index,
+        Alert $alertItem,
+        NotificationCollection $notificationCollection
+    ): void {
         $soundFile = $form->get('sound_' . $index)->getData();
         if (!$soundFile) {
             return;
@@ -138,7 +134,6 @@ final class AlertFormHandler
                 $this->filesystem->mkdir($userDirectory);
             }
         } catch (Exception $exception) {
-            dump($exception);
             $notificationCollection->add(new Notification('error', 'error.user_directory'));
         }
 
@@ -153,18 +148,20 @@ final class AlertFormHandler
                 $newFilename
             );
         } catch (FileException $exception) {
-            dump($exception);
             $notificationCollection->addWithDuplicate(new Notification('error', 'error.file_upload', ['filename' => $safeFilename]));
 
             return;
         }
 
-        $alertFormModel->{'sound_' . $index} = $newFilename;
+        $alertItem->sound = $newFilename;
     }
 
     private function deleteFile(User $user, AlertEntity $alert): void
     {
         $soundFile = $alert->getFile();
+        if ($soundFile === '') {
+            return;
+        }
 
         $fullSoundFile = $this->fileSaveDir . DIRECTORY_SEPARATOR . $user->getId()  . DIRECTORY_SEPARATOR . $soundFile;
 

@@ -18,6 +18,7 @@ error:
     user_directory: "Userverzeichnis konnte nicht erstellt werden. Bitte kontaktiere den Administrator."
     file_upload: "Datei '%filename%' konnte nicht hochgeladen werden."
     error_creating: "Alertig '%name%' konnte nicht erstellt werden."
+    no_login_found: "Es wurde kein gültiger Login gefunden"
 
 success:
     alert_saved: "Erfolgreich %success_count% Alerts gespeichert!"

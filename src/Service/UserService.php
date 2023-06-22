@@ -5,26 +5,35 @@ namespace App\Service;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Padhie\TwitchApiBundle\Model\TwitchUser;
+use Padhie\TwitchApiBundle\Response\Users\User as TwitchUser;
 
 final class UserService
 {
-    private EntityManagerInterface $entityManager;
-    private UserRepository $userRepository;
+    public const SESSION_KEY_USER_ID = 'userUuid';
 
-    public function __construct(EntityManagerInterface $entityManager, UserRepository $userRepository)
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly UserRepository $userRepository
+    ) {
+    }
+
+    public function find(string $uuid): ?User
     {
-        $this->entityManager = $entityManager;
-        $this->userRepository = $userRepository;
+        return $this->userRepository->find($uuid);
     }
 
     public function getUserByTwitchUser(TwitchUser $twitchUser): ?User
     {
         $twitchId = $twitchUser->getId();
-        $twitchLogin = $twitchUser->getName();
+        $twitchLogin = $twitchUser->getLogin();
 
+        return $this->getUserByTwitchUserData($twitchId, $twitchLogin);
+    }
+
+    public function getUserByTwitchUserData(?int $twitchId, ?string $twitchLogin): ?User
+    {
         $user = $this->userRepository->findOneBy([
-            'twitchId' => $twitchId,
+            'twitchId' => $twitchId ?? '',
         ]);
 
         if ($user !== null) {
@@ -32,7 +41,7 @@ final class UserService
         }
 
         $user = $this->userRepository->findOneBy([
-            'twitchLogin' => $twitchLogin,
+            'twitchLogin' => $twitchLogin ?? '',
         ]);
 
         return $user ?? null;
@@ -42,12 +51,15 @@ final class UserService
     {
         $user = $this->getUserByTwitchUser($twitchUser);
         if ($user !== null) {
+            $user->setTwitchOAuth($oAuth);
+            $this->entityManager->flush();
+
             return $user;
         }
 
         $user = new User(
             $twitchUser->getId(),
-            $twitchUser->getName(),
+            $twitchUser->getLogin(),
             $oAuth
         );
 
