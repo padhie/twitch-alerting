@@ -20,9 +20,7 @@ final class ViewController extends AbstractController
         $this->userRepository = $userRepository;
     }
 
-    /**
-     * @Route("/view/{userId}/", name="view")
-     */
+    #[Route("/view/{userId}/", name: "view")]
     public function index(string $userId, Request $request): Response
     {
         $user = $this->userRepository->findOneBy([

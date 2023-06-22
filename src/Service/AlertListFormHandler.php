@@ -42,7 +42,7 @@ final class AlertListFormHandler
             $new = false;
 
             $item = $alertFormModel->getItem($i);
-            if (!$item->name !== null) {
+            if ($item->name == null) {
                 continue;
             }
 
@@ -58,7 +58,7 @@ final class AlertListFormHandler
                 $entity = new AlertEntity($user, $item->name);
                 $this->entityManager->persist($entity);
 
-                if ($item->sound) {
+                if (!$item->sound) {
                     $notificationCollection->addWithDuplicate(
                         new Notification('error', 'error.error_creating', ['name' => $item->name])
                     );
@@ -78,8 +78,6 @@ final class AlertListFormHandler
 
             $savedCounter++;
         }
-
-        dump($alertFormModel);
 
         $this->entityManager->flush();
 
@@ -136,7 +134,6 @@ final class AlertListFormHandler
                 $this->filesystem->mkdir($userDirectory);
             }
         } catch (Exception $exception) {
-            dump($exception);
             $notificationCollection->add(new Notification('error', 'error.user_directory'));
         }
 
@@ -151,7 +148,6 @@ final class AlertListFormHandler
                 $newFilename
             );
         } catch (FileException $exception) {
-            dump($exception);
             $notificationCollection->addWithDuplicate(new Notification('error', 'error.file_upload', ['filename' => $safeFilename]));
 
             return;
@@ -163,6 +159,9 @@ final class AlertListFormHandler
     private function deleteFile(User $user, AlertEntity $alert): void
     {
         $soundFile = $alert->getFile();
+        if ($soundFile === '') {
+            return;
+        }
 
         $fullSoundFile = $this->fileSaveDir . DIRECTORY_SEPARATOR . $user->getId()  . DIRECTORY_SEPARATOR . $soundFile;
 

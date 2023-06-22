@@ -6,15 +6,19 @@ use App\Twitch\TokenRequest;
 use App\Twitch\TokenResponse;
 use GuzzleHttp\Client;
 use Padhie\TwitchApiBundle\Request\Authenticator\ValidateRequest;
+use Padhie\TwitchApiBundle\Request\ChannelPoints\GetCustomRewardRequest;
 use Padhie\TwitchApiBundle\Request\RequestGenerator;
 use Padhie\TwitchApiBundle\Request\Users\GetUsersRequest;
 use Padhie\TwitchApiBundle\Response\Authenticator\ValidateResponse;
+use Padhie\TwitchApiBundle\Response\ChannelPoints\CustomReward;
+use Padhie\TwitchApiBundle\Response\ChannelPoints\GetCustomRewardResponse;
 use Padhie\TwitchApiBundle\Response\ResponseGenerator;
 use Padhie\TwitchApiBundle\Response\Users\GetUsersResponse;
 use Padhie\TwitchApiBundle\Response\Users\User;
 use Padhie\TwitchApiBundle\TwitchAuthenticator;
 use Padhie\TwitchApiBundle\TwitchClient;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 final class TwitchApiWrapper
 {
@@ -25,9 +29,6 @@ final class TwitchApiWrapper
         'channel_subscriptions',
         'channel:moderate',
     ];
-    public const SESSION_OAUTH_KEY = 'twitchOAuth';
-    public const SESSION_LOGIN = 'twitchLogin';
-    public const SESSION_ID = 'twitchId';
 
     private TwitchClient $client;
     private readonly TwitchAuthenticator $twitchAuthenticator;
@@ -42,12 +43,9 @@ final class TwitchApiWrapper
         $this->recreateClient();
     }
 
-    public function checkAndUseRequestOAuth(Request $request): void
+    public function checkAndUseRequestOAuth(?string $oAuth): void
     {
-        $session = $request->getSession();
-        $oAuth = $session->get(self::SESSION_OAUTH_KEY);
-
-        if ($session && $session->get(self::SESSION_OAUTH_KEY)) {
+        if (is_string($oAuth) && trim($oAuth) !== '') {
             $this->recreateClient($oAuth);
         }
     }
@@ -126,6 +124,31 @@ final class TwitchApiWrapper
         }
 
         return $users[0];
+    }
+
+    /** @return array<int, CustomReward> */
+    public function getRewards(?int $id, ?string $login): array
+    {
+        if ($id === null && $login === null) {
+            throw new \RuntimeException();
+        }
+
+        if ($id === null) {
+            $request = new GetUsersRequest(null, $login);
+            $response = $this->client->send($request);
+
+            assert($response instanceof GetUsersResponse);
+            $user = $response->getUsers()[0];
+
+            assert($user instanceof User);
+            $id = $user->getId();
+        }
+
+        $request = new GetCustomRewardRequest($id);
+        $response = $this->client->send($request);
+        assert($response instanceof GetCustomRewardResponse);
+
+        return $response->getCustomRewards();
     }
 
     private function recreateClient(?string $oAuth = null): void

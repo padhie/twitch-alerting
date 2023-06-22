@@ -8,7 +8,6 @@ use App\Form\Model\AlertList as AlertFormModel;
 use App\Model\NotificationCollection;
 use App\Repository\AlertRepository;
 use App\Service\AlertListFormHandler;
-use App\Service\TwitchApiWrapper;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,9 +27,7 @@ final class BackendController extends AbstractController
     ) {
     }
 
-    /**
-     * @Route("/admin", name="backend")
-     */
+    #[Route("/admin", name: "backend")]
     public function index(Request $request, SluggerInterface $slugger): Response
     {
         $user = $this->loadUser($request);
@@ -74,10 +71,12 @@ final class BackendController extends AbstractController
     private function loadUser(Request $request): ?User
     {
         $session = $request->getSession();
-        $id = $session->get(TwitchApiWrapper::SESSION_ID);
-        $login = $session->get(TwitchApiWrapper::SESSION_LOGIN);
+        $userUuid = $session->get(UserService::SESSION_KEY_USER_ID);
+        if ($userUuid === null) {
+            return null;
+        }
 
-        return $this->userService->getUserByTwitchUserData($id, $login);
+        return $this->userService->find($userUuid);
     }
 
     private function addFlashMassages(NotificationCollection $notificationCollection): void

@@ -57,4 +57,11 @@ final class User
     {
         return $this->twitchOAuth;
     }
+
+    public function setTwitchOAuth (string $twitchOAuth): self
+    {
+        $this->twitchOAuth = $twitchOAuth;
+
+        return $this;
+    }
 }

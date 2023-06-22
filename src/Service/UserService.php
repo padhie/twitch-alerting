@@ -9,10 +9,17 @@ use Padhie\TwitchApiBundle\Response\Users\User as TwitchUser;
 
 final class UserService
 {
+    public const SESSION_KEY_USER_ID = 'userUuid';
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly UserRepository $userRepository
     ) {
+    }
+
+    public function find(string $uuid): ?User
+    {
+        return $this->userRepository->find($uuid);
     }
 
     public function getUserByTwitchUser(TwitchUser $twitchUser): ?User
@@ -44,6 +51,9 @@ final class UserService
     {
         $user = $this->getUserByTwitchUser($twitchUser);
         if ($user !== null) {
+            $user->setTwitchOAuth($oAuth);
+            $this->entityManager->flush();
+
             return $user;
         }
 

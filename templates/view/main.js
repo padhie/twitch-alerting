@@ -40,9 +40,7 @@ function init() {
 
     setTimeout(
         () => {
-            for (let topic of topics) {
-                listen(topic);
-            }
+            listen(topics);
         },
         1000
     );
@@ -117,17 +115,17 @@ function showHtmlOutput() {
     document.getElementById('socket').classList.toggle('hidden');
 
     document.getElementById('topic-form').onsubmit = function(event) {
-        listen(document.getElementById('topic-text').value);
+        listen([document.getElementById('topic-text').value]);
         event.preventDefault();
     };
 }
 
-function listen(topic) {
+function listen(topics) {
     let message = {
         type: 'LISTEN',
         nonce: nonce(15),
         data: {
-            topics: [topic],
+            topics: topics,
             auth_token: twitchOAuthToken
         }
     };

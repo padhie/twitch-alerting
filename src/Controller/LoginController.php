@@ -22,9 +22,7 @@ final class LoginController extends AbstractController
     ) {
     }
 
-    /**
-     * @Route("/login", name="login")
-     */
+    #[Route('/login', name: 'login')]
     public function indexAction(): Response
     {
         return $this->redirect(
@@ -37,9 +35,7 @@ final class LoginController extends AbstractController
         );
     }
 
-    /**
-     * @Route("/twitch/get_access", name="twitch_access")
-     */
+    #[Route("/twitch/get_access", name: "twitch_access")]
     public function getAccessAction(Request $request): Response
     {
         $code = $request->query->get('code') ?? '';
@@ -48,9 +44,7 @@ final class LoginController extends AbstractController
         return $this->handleAccessToken($request, $response->getAccessToken());
     }
 
-    /**
-     * @Route("/twitch/redirect", name="twitch_redirect")
-     */
+    #[Route("/twitch/redirect", name: "twitch_redirect")]
     public function redirectAction(Request $request): Response
     {
         $oAuth = $request->get('access_token') ?? null;
@@ -64,12 +58,9 @@ final class LoginController extends AbstractController
             return $this->redirectToRoute('frontend');
         }
 
-        $this->twitchApiWrapper->checkAndUseRequestOAuth($request);
+        $this->twitchApiWrapper->checkAndUseRequestOAuth($oAuth);
 
-        $session = $request->getSession();
         $validateModel = $this->twitchApiWrapper->validateByOAuth($oAuth);
-        $session->set(TwitchApiWrapper::SESSION_ID, $validateModel->getUserId());
-        $session->set(TwitchApiWrapper::SESSION_LOGIN, $validateModel->getLogin());
 
         try {
             $twitchUser = $this->twitchApiWrapper->getUserByName($validateModel->getLogin());
@@ -84,7 +75,10 @@ final class LoginController extends AbstractController
             return $this->redirectToRoute('frontend');
         }
 
-        $this->userService->getOrCreateUserByTwitchUser($twitchUser, $oAuth);
+        $user = $this->userService->getOrCreateUserByTwitchUser($twitchUser, $oAuth);
+
+        $session = $request->getSession();
+        $session->set(UserService::SESSION_KEY_USER_ID, $user->getId());
 
         return $this->redirectToRoute('backend');
     }

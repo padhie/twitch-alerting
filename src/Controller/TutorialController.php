@@ -9,9 +9,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class TutorialController extends AbstractController
 {
-    /**
-     * @Route("/tutorial", name="tutorial")
-     */
+    #[Route("/tutorial", name: "tutorial")]
     public function index(): Response
     {
         $tutorialList = [
